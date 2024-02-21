@@ -35,9 +35,12 @@ use App\Http\Controllers\UserController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
+Route::prefix('app-info')->group(function() {
+    Route::get('/', [AppInfoController::class, 'index']);
+});
 
 Route::group(['middleware' => ['auth:sanctum']], function() {
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/logout', [AuthController::class, 'logout']);
 
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/password', [AuthController::class, 'password']);
@@ -124,7 +127,7 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     });
 
     Route::prefix('service-type')->group(function() {
-        Route::get('/service-type/{id}', [ServiceTypeController::class, 'indexById']);
+        Route::get('/service/{id}', [ServiceTypeController::class, 'indexById']);
         Route::post('/', [ServiceTypeController::class, 'store']);
         Route::get('/{id}', [ServiceTypeController::class, 'show']);
         Route::post('/{id}', [ServiceTypeController::class, 'update']);

@@ -41,9 +41,9 @@ class UserController extends Controller
         }
         $data->permission_id = (int)$request->permission_id;
         $data->role_id = (int)$request->role_id;
-        $data->name = $request->name;
         $data->first_name = $request->first_name;
         $data->last_name = $request->last_name;
+        $data->name = $request->first_name . ' ' . $request->last_name;
         $data->address = $request->address;
         $data->phone_number = $request->phone_number;
         $data->email = $request->email;
@@ -81,9 +81,9 @@ class UserController extends Controller
         }
         $data->permission_id = (int)$request->permission_id;
         $data->role_id = (int)$request->role_id;
-        $data->name = $request->name;
         $data->first_name = $request->first_name;
         $data->last_name = $request->last_name;
+        $data->name = $request->first_name . ' ' . $request->last_name;
         $data->address = $request->address;
         $data->phone_number = $request->phone_number;
         $data->email = $request->email;

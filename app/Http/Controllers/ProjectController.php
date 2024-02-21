@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
+use App\Models\ProjectCategory;
 use App\Models\ProjectImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,21 @@ class ProjectController extends Controller
         return ProjectResource::collection($data);
     }
 
+    public function indexById($id){
+        $projectsByCategoryId = ProjectCategory::where('category_id', $id)->pluck('project_id'); 
+        $data = Project::whereIn('id', $projectsByCategoryId)->paginate(12);
+
+        return ProjectResource::collection($data);
+    }
+
+    public function indexLatest(){
+            $data = Project::orderBy('updated_at','desc')
+                    ->orderBy('name','asc')
+                    ->paginate(3); 
+        
+        return ProjectResource::collection($data);
+    }
+
     public function store(Request $request){
         $data = new Project();
         $data->user_id = Auth::user()->id;
@@ -37,7 +53,7 @@ class ProjectController extends Controller
         if( $request->hasFile('thumbnail') ){
             $thumbnail = $request->file('thumbnail');
             $thumbnail_extension = strtolower($thumbnail->getClientOriginalExtension());
-            $thumbnail_name = date('YmdHi'). '.' . $thumbnail_extension;
+            $thumbnail_name = date('YmdHi') . rand(0, 1000) . '.' . $thumbnail_extension;
             $thumbnail->move($this->thumbnail_upload_location, $thumbnail_name);
             $data->thumbnail = $this->thumbnail_upload_location . $thumbnail_name;
         }
@@ -83,16 +99,16 @@ class ProjectController extends Controller
         if( $request->hasFile('thumbnail') ){
             $thumbnail = $request->file('thumbnail');
             $image_extension = strtolower($thumbnail->getClientOriginalExtension());
-            $image_name = date('YmdHi'). '.' . $image_extension;
+            $image_name = date('YmdHi') . rand(0, 1000) . '.' . $image_extension;
             if(!empty($data->thumbnail)){
                 if(file_exists(public_path($data->thumbnail))){
                     unlink($data->thumbnail);
                 }
-                $thumbnail->move($this->upload_location, $image_name);
-                $data->thumbnail = $this->upload_location . $image_name;                    
+                $thumbnail->move($this->thumbnail_upload_location, $image_name);
+                $data->thumbnail = $this->thumbnail_upload_location . $image_name;                    
             }else{
-                $thumbnail->move($this->upload_location, $image_name);
-                $data->thumbnail = $this->upload_location . $image_name;
+                $thumbnail->move($this->thumbnail_upload_location, $image_name);
+                $data->thumbnail = $this->thumbnail_upload_location . $image_name;
             }              
         }
 

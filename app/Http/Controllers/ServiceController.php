@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ServiceResource;
 use App\Models\Service;
 use App\Models\ServiceImage;
+use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +32,13 @@ class ServiceController extends Controller
         return ServiceResource::collection($data);
     }
 
+    public function indexById($id){
+        $servicesByTypeId = ServiceType::where('type_id', $id)->pluck('service_id'); 
+        $data = Service::whereIn('id', $servicesByTypeId)->paginate(12);
+        
+        return ServiceResource::collection($data);
+    }
+
     public function store(Request $request){
         $data = new Service();
         $data->user_id = Auth::user()->id;
@@ -38,7 +46,7 @@ class ServiceController extends Controller
         if( $request->hasFile('thumbnail') ){
             $thumbnail = $request->file('thumbnail');
             $thumbnail_extension = strtolower($thumbnail->getClientOriginalExtension());
-            $thumbnail_name = date('YmdHi'). '.' . $thumbnail_extension;
+            $thumbnail_name = date('YmdHi') . rand(0, 1000) . '.' . $thumbnail_extension;
             $thumbnail->move($this->thumbnail_upload_location, $thumbnail_name);
             $data->thumbnail = $this->thumbnail_upload_location . $thumbnail_name;
         }
@@ -78,8 +86,6 @@ class ServiceController extends Controller
         ]);
     }
 
-
-
     public function update(Request $request, $id){
         $data = Service::find($id);
         $data->user_id = Auth::user()->id;
@@ -88,16 +94,16 @@ class ServiceController extends Controller
         if( $request->hasFile('thumbnail') ){
             $thumbnail = $request->file('thumbnail');
             $image_extension = strtolower($thumbnail->getClientOriginalExtension());
-            $image_name = date('YmdHi'). '.' . $image_extension;
+            $image_name = date('YmdHi') . rand(0, 1000) . '.' . $image_extension;
             if(!empty($data->thumbnail)){
                 if(file_exists(public_path($data->thumbnail))){
                     unlink($data->thumbnail);
                 }
-                $thumbnail->move($this->upload_location, $image_name);
-                $data->thumbnail = $this->upload_location . $image_name;                    
+                $thumbnail->move($this->thumbnail_upload_location, $image_name);
+                $data->thumbnail = $this->thumbnail_upload_location . $image_name;                    
             }else{
-                $thumbnail->move($this->upload_location, $image_name);
-                $data->thumbnail = $this->upload_location . $image_name;
+                $thumbnail->move($this->thumbnail_upload_location, $image_name);
+                $data->thumbnail = $this->thumbnail_upload_location . $image_name;
             }              
         }
 
@@ -136,7 +142,7 @@ class ServiceController extends Controller
     }
 
     public function show($id){
-        $data = Service::with(['user', 'service_images'])->find($id);
+        $data = Service::with(['user', 'types', 'service_images'])->find($id);
         
         return  new ServiceResource($data);
     }
@@ -163,4 +169,6 @@ class ServiceController extends Controller
             'message' => 'Deleted Successfully.',
         ]);
     }
+
+
 }

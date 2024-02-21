@@ -12,10 +12,10 @@ class ProjectCategoryController extends Controller
 {
    
     public function indexById($id){
-        $data = ProjectCategory::with(['category'])
-                    ->where('project_id', $id)
+        $data = ProjectCategory::with(['project', 'category'])
+                    ->where('category_id', $id)
                     ->orderBy('updated_at','desc')
-                    ->get(); 
+                    ->paginate(12); 
         
         return ProjectCategoryResource::collection($data);
     }

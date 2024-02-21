@@ -56,12 +56,10 @@ class CategoryController extends Controller
     }
 
     public function show($id){
-        $data = Category::with(['user'])->find($id);
+        $data = Category::with(['user', 'projects'])->find($id);
         
-        return response()->json([
-            'message' => 'Saved Successfully.',
-            'data' => new CategoryResource($data),
-        ]);
+        return new CategoryResource($data);
+;
     }
 
     public function delete($id){

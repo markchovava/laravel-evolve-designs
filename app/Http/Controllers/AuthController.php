@@ -13,9 +13,18 @@ use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    
+    public function auth_user(){
+        $data = Auth::check();
+
+        return response()->json([ 'data' => $data ]);
+    }
+
+
+    
     public function profile(){
         $id = Auth::user()->id;
-        $data = User::find($id);
+        $data = User::with(['role'])->find($id);
         Log::info($data);
 
         return new UserResource($data);
@@ -39,26 +48,31 @@ class AuthController extends Controller
         ]);
     }
     
-    public function login(Request $request){
-        //$request->validated($request->all());
+    public function login(LoginRequest $request){
+        $request->validated($request->all());
 
-        if(!Auth::attempt($request->only('email', 'password'))){
+        $user = User::with(['role'])->where('email', $request->email)->first();
+        if(!isset($user)){
             return response()->json([
-                'message' => 'User does not exist in the database.',
-                'error' => 401
+                'message' => 'Email is not found.',
             ]);
         }
 
-        $user = User::where('email', $request->email)->first();
+        if(!Hash::check($request->password, $user->password)){
+            return response()->json([
+                'message' => 'Password does not match.',
+            ]);
+        }
 
         return response()->json([
             'message' => 'Login Successfully.',
-            'token' => $user->createToken($user->email)->plainTextToken,
+            'auth_token' => $user->createToken($user->email)->plainTextToken,
+            'role_level' => !empty($user->role->level) ? $user->role->level : 3,
         ]);
+   
     }
 
     public function register(Request $request){
-        //$request->validated($request->all());
 
         $data = new User();
         $data->email = $request->email;
@@ -68,7 +82,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Saved Successfully.',
-            'token' => $data->createToken($data->email)->plainTextToken,
+            'auth_token' => $data->createToken($data->email)->plainTextToken,
+            'role_level' => 3
         ]);
     }
 
@@ -76,7 +91,7 @@ class AuthController extends Controller
         Auth::user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'You have succesfully been logged out and your token has been removed.',
+            'message' => 'You have succesfully been logged out.',
         ]);
     }
 

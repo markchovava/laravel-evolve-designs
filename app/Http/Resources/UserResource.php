@@ -33,7 +33,6 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at->format('d M Y H:i a'),
             'updated_at' => $this->updated_at->format('d M Y H:i a'),
             'role' => new RoleResource($this->whenLoaded('role')),
-            'permission' => new PermissionResource($this->whenLoaded('permission')),
         ];
     }
 }
